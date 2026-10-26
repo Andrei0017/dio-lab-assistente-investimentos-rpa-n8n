@@ -1,0 +1,63 @@
+{
+  "name": "Assistente de Investimentos - RPA & n8n",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-clientes",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook Clientes",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://digitalinnovationone.github.io/dio-lab-assistente-investimentos-rpa-n8n/data.csv",
+        "options": {}
+      },
+      "id": "2",
+      "name": "Buscar Opcoes Investimento (CSV)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const clientes = $('Webhook Clientes').all().map(item => item.json.body || item.json);\n\nconst recomendacoes = {\n  'Conservador': 'Recomendamos Tesouro Selic e CDB de liquidez diária, priorizando segurança e reserva de emergência.',\n  'Moderado': 'Recomendamos Fundos Imobiliários (FIIs) e Tesouro IPCA+ para crescimento sustentável com controle de risco.',\n  'Arrojado': 'Recomendamos Ações de valor e dividendos, além de ETFs globais para maior rentabilidade no longo prazo.'\n};\n\nreturn clientes.map(cliente => {\n  const perfil = cliente.perfil || 'Conservador';\n  return {\n    json: {\n      nome: cliente.nome,\n      email: cliente.email,\n      saldo: cliente.saldo,\n      perfil: perfil,\n      mensagem: `Olá, ${cliente.nome}! Para o seu perfil ${perfil} com saldo de R$ ${cliente.saldo}, a recomendação é: ${recomendacoes[perfil] || recomendacoes['Conservador']}`\n    }\n  };\n});"
+      },
+      "id": "3",
+      "name": "Gerar Recomendacoes Personalizadas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Clientes": {
+      "main": [
+        [
+          {
+            "node": "Buscar Opcoes Investimento (CSV)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Opcoes Investimento (CSV)": {
+      "main": [
+        [
+          {
+            "node": "Gerar Recomendacoes Personalizadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true
+}
